@@ -385,3 +385,42 @@ def mc_prediction(env, policy, num_episodes, discount_factor=1.0, sampling_funct
                 V[s] = sum(returns[s])/len(returns[s])
                 
     return V
+
+def mc_prediction(env, policy, num_episodes, discount_factor=1.0, sampling_function=sample_episode):
+    """
+    Monte Carlo prediction algorithm. Calculates the value function
+    for a given policy using sampling.
+    
+    Args:
+        env: OpenAI gym environment.
+        policy: A policy which allows us to sample actions with its sample_action method.
+        num_episodes: Number of episodes to sample.
+        discount_factor: Gamma discount factor.
+        sampling_function: Function that generates data from one episode.
+    
+    Returns:
+        A dictionary that maps from state -> value.
+        The state is a tuple and the value is a float.
+    """
+
+    # Keeps track of current V and count of returns for each state
+    # to calculate an update.
+    V = defaultdict(float)
+    
+    returns = defaultdict(list)
+    returns_count = defaultdict(float)
+    
+    for i in range(num_episodes):
+        S = []
+        states, actions, rewards, dones = sampling_function(env, policy)
+        G = 0
+        for idx in range(len(states) - 2, 0, -1):
+            G = discount_factor * G + rewards[idx]
+            
+            s = states[idx]
+            if s not in S:
+                S.append(s)
+                returns[s].append(G)
+                V[s] = sum(returns[s])/len(returns[s])
+                
+    return V
