@@ -117,3 +117,101 @@ def mc_prediction(env, policy, num_episodes, discount_factor=1.0, sampling_funct
                 V[s] = sum(returns[s])/len(returns[s])
                 
     return V
+
+class RandomBlackjackPolicy(object):
+    """
+    A random BlackJack policy.
+    """
+    def get_probs(self, states, actions):
+        """
+        This method takes a list of states and a list of actions and returns a numpy array that contains 
+        a probability of perfoming action in given state for every corresponding state action pair. 
+
+        Args:
+            states: a list of states.
+            actions: a list of actions.
+
+        Returns:
+            Numpy array filled with probabilities (same length as states and actions)
+        """
+        
+        return np.zeros(len(states)) + 0.5
+    
+    def sample_action(self, state):
+        """
+        This method takes a state as input and returns an action sampled from this policy.  
+
+        Args:
+            state: current state
+
+        Returns:
+            An action (int).
+        """
+        return np.random.choice(a=[0, 1])
+
+def mc_importance_sampling(env, behavior_policy, target_policy, num_episodes, discount_factor=1.0,
+                           sampling_function=sample_episode):
+    """
+    Monte Carlo prediction algorithm. Calculates the value function
+    for a given target policy using behavior policy and ordinary importance sampling.
+    
+    Args:
+        env: OpenAI gym environment.
+        behavior_policy: A policy used to collect the data.
+        target_policy: A policy which value function we want to estimate.
+        num_episodes: Number of episodes to sample.
+        discount_factor: Gamma discount factor.
+        sampling_function: Function that generates data from one episode.
+    
+    Returns:
+        A dictionary that maps from state -> value.
+        The state is a tuple and the value is a float.
+    """
+    
+    # Keeps track of current V and count of returns for each state
+    # to calculate an update.
+    V = defaultdict(float)
+    
+    returns = defaultdict(list)
+    returns_count = defaultdict(float)
+    
+    for i in tqdm(range(num_episodes)):
+        states, actions, rewards, dones = sampling_function(env, behavior_policy)
+        
+        pt = target_policy.get_probs(states, actions)
+        pb = behavior_policy.get_probs(states, actions)
+        
+        
+#         print(states)
+#         print(actions)
+#         print(pt)
+#         print(pb)
+        
+        W = np.sum(pt/pb)
+        G = 0
+        
+        for idx in range(len(states) - 1, -1 , -1):
+            S = []
+            G = discount_factor * G + rewards[idx]
+            
+            if pt[idx] != 0:
+                W /= pt[idx]/pb[idx]
+            else:
+                W = 0
+                break
+            
+            s = states[idx]
+            if s not in S:
+                returns_count[s] += 1
+                returns[s].append(G)
+                S.append(s)         
+                
+#                 print(W)
+                
+#                 print("updating V")
+#                 print("W = ", W)
+#                 print("Cur V =", V[s], "a = ", 1/returns_count[s], "diff = ", (W*G - V[s]))
+                
+                V[s] = (V[s] + (1/returns_count[s]) * (W*G - V[s]))
+                
+    return V
