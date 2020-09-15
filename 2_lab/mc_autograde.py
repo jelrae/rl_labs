@@ -75,10 +75,14 @@ def sample_episode(env, policy):
         states.append(sp)
         t += 1
 <<<<<<< HEAD
+<<<<<<< HEAD
     #TODO Should this be a tuple?  like (states, actions, rewards, dones)
 =======
     
 >>>>>>> 0a08e37b5421d6e5426b987a4aa57d4172a14c75
+=======
+    
+>>>>>>> 44d2ef9276b50bb537ce6d7e489b2ddb573b2875
     return states, actions, rewards, dones
 
 def mc_prediction(env, policy, num_episodes, discount_factor=1.0, sampling_function=sample_episode):
@@ -121,6 +125,7 @@ def mc_prediction(env, policy, num_episodes, discount_factor=1.0, sampling_funct
                 V[s] = sum(returns[s])/len(returns[s])
                 
     return V
+<<<<<<< HEAD
 
 class RandomBlackjackPolicy(object):
     """
@@ -2599,3 +2604,5 @@ def mc_importance_sampling(env, behavior_policy, target_policy, num_episodes, di
                 
 >>>>>>> 0a08e37b5421d6e5426b987a4aa57d4172a14c75
     return V
+=======
+>>>>>>> 44d2ef9276b50bb537ce6d7e489b2ddb573b2875
